@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ulimit -Hs 61440 || true
 os="$(uname -s)"
 arch="$(uname -m)"
 
