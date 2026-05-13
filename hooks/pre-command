@@ -52,8 +52,8 @@ if ! determinate-nixd version &>/dev/null; then
           --no-confirm \
           --init none
 
-      mv ./determinate-nixd /usr/local/bin/determinate-nixd
-      nohup /usr/local/bin/determinate-nixd daemon &
+      sudo mv -f ./determinate-nixd /usr/local/bin/determinate-nixd
+      sudo nohup /usr/local/bin/determinate-nixd daemon &
       export NIX_REMOTE="daemon"
       ;;
     Darwin)
