@@ -74,6 +74,7 @@ else
   echo "Determinate Nix detected, skipping install"
 fi
 
+ls /nix/var/nix/profiles/*
 # Set PATH to include Nix-created directories
 PATH="${PATH}:${nix_profile_path}"
 
