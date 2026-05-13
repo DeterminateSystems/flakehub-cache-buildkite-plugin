@@ -12,8 +12,8 @@ case "${os}" in
     nix_profile_path="/root/.nix-profile/bin"
 
     case "${arch}" in
-      x86_64)  closure_arch="X64-Linux" ;;
-      aarch64) closure_arch="ARM64-Linux" ;;
+      x86_64)  closure_arch="X64-Linux" nix_system="x86_64-linux" ;;
+      aarch64) closure_arch="ARM64-Linux" nix_system="aarch64-linux" ;;
       *) echo "Unsupported Linux architecture: ${arch}"; exit 1 ;;
     esac
 
@@ -23,8 +23,7 @@ case "${os}" in
     nix_profile_path="/nix/var/nix/profiles/default/bin"
 
     case "${arch}" in
-      x86_64) closure_arch="X64-macOS" ;;
-      arm64)  closure_arch="ARM64-macOS" ;;
+      arm64)  closure_arch="ARM64-macOS" nix_system="aarch64-darwin" ;;
       *) echo "Unsupported macOS architecture: ${arch}"; exit 1 ;;
     esac
     ;;
@@ -36,6 +35,13 @@ esac
 
 export MAGIC_NIX_CACHE_CLOSURE_URL="https://github.com/DeterminateSystems/magic-nix-cache/releases/latest/download/magic-nix-cache-${closure_arch}"
 
+curl \
+  --output "determinate-nixd" \
+  --proto '=https' \
+  --tlsv1.2 -sSf -L \
+  "https://install.determinate.systems/determinate-nixd/rev/7a5fd0a417f3a25e784f5758a0fcdc7d4ea7570e/${nix_system}"
+chmod +x determinate-nixd
+
 if ! determinate-nixd version &>/dev/null; then
   echo "Installing Determinate Nix"
 
@@ -46,12 +52,14 @@ if ! determinate-nixd version &>/dev/null; then
           --no-confirm \
           --init none
 
+      mv ./determinate-nixd /usr/local/bin/determinate-nixd
       nohup /usr/local/bin/determinate-nixd daemon &
       export NIX_REMOTE="daemon"
       ;;
     Darwin)
       curl --proto '=https' --tlsv1.2 -sSf -L "${DETERMINATE_NIX_INSTALL_URL}" -o /tmp/Determinate.pkg
       sudo installer -pkg /tmp/Determinate.pkg -target /
+      mv ./determinate-nixd /usr/local/bin/determinate-nixd
       ;;
   esac
 
@@ -69,25 +77,9 @@ fi
 # Set PATH to include Nix-created directories
 PATH="${PATH}:${nix_profile_path}"
 
-echo "Fetching OIDC token for Buildkite"
-
-token_lifetime="${BUILDKITE_PLUGIN_FLAKEHUB_CACHE_TOKEN_LIFETIME_SECONDS:-3600}"
-
-echo "Token lifetime set to ${token_lifetime} seconds"
-
-buildkite_oidc_token="$(\
-  buildkite-agent oidc request-token \
-  --claim 'organization_id' \
-  --claim 'pipeline_id' \
-  --audience "api.flakehub.com" \
-  --lifetime "${token_lifetime}" \
-)"
-
 echo "Logging in to FlakeHub using OIDC token"
 
-echo "${buildkite_oidc_token}" | determinate-nixd login token --token-file /dev/stdin
-
-echo "Login successful"
+determinate-nixd auth login buildkite || true
 
 # Try to kill any lingering magic-nix-cache processes
 nix shell nixpkgs#toybox -c killall -s SIGKILL magic-nix-cache || true
