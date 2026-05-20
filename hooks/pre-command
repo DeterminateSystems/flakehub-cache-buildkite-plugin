@@ -60,6 +60,7 @@ if ! determinate-nixd version &>/dev/null; then
       curl --proto '=https' --tlsv1.2 -sSf -L "${DETERMINATE_NIX_INSTALL_URL}" -o /tmp/Determinate.pkg
       sudo installer -pkg /tmp/Determinate.pkg -target /
       sudo mv -f ./determinate-nixd /usr/local/bin/determinate-nixd
+      sudo pkill -9 determinate-nixd
       ;;
   esac
 
