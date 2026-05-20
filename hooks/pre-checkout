@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export BUILDKITE_GIT_CLONE_FLAGS="-v --filter=blob:none"
