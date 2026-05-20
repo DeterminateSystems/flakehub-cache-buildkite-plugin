@@ -59,7 +59,7 @@ if ! determinate-nixd version &>/dev/null; then
     Darwin)
       curl --proto '=https' --tlsv1.2 -sSf -L "${DETERMINATE_NIX_INSTALL_URL}" -o /tmp/Determinate.pkg
       sudo installer -pkg /tmp/Determinate.pkg -target /
-      mv ./determinate-nixd /usr/local/bin/determinate-nixd
+      sudo mv -f ./determinate-nixd /usr/local/bin/determinate-nixd
       ;;
   esac
 
@@ -80,7 +80,10 @@ PATH="${PATH}:${nix_profile_path}"
 
 echo "Logging in to FlakeHub using OIDC token"
 
+if ! determinate-nixd auth login buildkite; then
+echo "Trying again"
 determinate-nixd auth login buildkite || true
+fi
 
 # Try to kill any lingering magic-nix-cache processes
 nix shell nixpkgs#toybox -c killall -s SIGKILL magic-nix-cache || true
