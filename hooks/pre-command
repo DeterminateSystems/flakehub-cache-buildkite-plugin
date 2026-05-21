@@ -89,7 +89,7 @@ fi
 cat /etc/nix/nix.conf || true
 
 # Try to kill any lingering magic-nix-cache processes
-nix shell https://flakehub.com/flake/nixos/nixpkgs/0#toybox -c killall -s SIGKILL magic-nix-cache || true
+nix shell https://flakehub.com/f/nixos/nixpkgs/0#toybox -c killall -s SIGKILL magic-nix-cache || true
 
 if ! command -v magic-nix-cache &>/dev/null; then
   echo "Installing Magic Nix Cache"
@@ -119,7 +119,7 @@ case "${os}" in
       &> "${mnc_log_file}" &
     ;;
   Darwin)
-    nix run https://flakehub.com/flake/nixos/nixpkgs/0#tmux -- new -d -s mnc \
+    nix run https://flakehub.com/f/nixos/nixpkgs/0#tmux -- new -d -s mnc \
       "magic-nix-cache --listen ${MAGIC_NIX_CACHE_LISTEN} \
         --startup-notification-file ${mnc_startup_file}" \
       \; pipe-pane -t mnc "cat > ${mnc_log_file}"
